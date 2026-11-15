@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ShopZone - Best E-Commerce Store{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2"></div>
+
+    <!-- Top Navbar -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+
+            <!-- Main Nav Row -->
+            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+
+                <!-- Logo -->
+                <a href="/" class="text-2xl font-bold text-blue-600 flex items-center gap-2 flex-shrink-0">
+                    <i class="fas fa-shopping-bag"></i> ShopZone
+                </a>
+
+                <!-- Search Bar -->
+                <div class="flex-1 mx-8 max-w-2xl">
+                    <div class="relative">
+                        <input
+                            id="searchInput"
+                            type="text"
+                            placeholder="Search for products, brands and more..."
+                            autocomplete="off"
+                            class="w-full pl-10 pr-20 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-gray-50"
+                        >
+
+                        <!-- Search Icon -->
+                        <button type="button" class="absolute right-10 top-2.5 text-gray-400">
+                            <i class="fas fa-search text-sm"></i>
+                        </button>
+
+                        <!-- Mic Button -->
+                        <button id="micButton" type="button"
+                                class="absolute right-3 top-2 text-gray-400 hover:text-blue-600 transition"
+                                title="Search by voice">
+                            <i class="fas fa-microphone text-sm" id="micIcon"></i>
+                        </button>
+
+                        <div
+                            id="searchDropdown"
+                            class="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 hidden overflow-hidden"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- Right Icons -->
+                <div class="flex items-center gap-5 flex-shrink-0">
+                    <!-- Wishlist -->
+                    <a href="{% url 'wishlist_page' %}" class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition">
+                        <div class="relative">
+                            <i class="fas fa-heart text-xl"></i>
+                            {% if wishlist_item_count > 0 %}
+                            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                {{ wishlist_item_count }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <span class="text-xs mt-0.5">Wishlist</span>
+                    </a>
+
+                    <!-- Cart -->
+                    <a href="{% url 'cart' %}" class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition relative">
+                        <div class="relative">
+                            <i class="fas fa-shopping-cart text-xl"></i>
+                            {% if cart_item_count > 0 %}
+                            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                {{ cart_item_count }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <span class="text-xs mt-0.5">Cart</span>
+                    </a>
+
+                    <!-- User -->
+                    {% if user.is_authenticated %}
+                    <div class="relative" id="userMenu">
+                        <button onclick="toggleUser(event)"
+                                class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition">
+                            <i class="fas fa-user-circle text-xl"></i>
+                            <span class="text-xs mt-0.5">{{ user.username|truncatechars:8 }}</span>
+                        </button>
+                        <!-- Dropdown -->
+                        <div id="userDropdown"
+                             class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-100 hidden z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-bold text-gray-800">{{ user.username }}</p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <a href="{% url 'order_history' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                                <i class="fas fa-box w-4"></i> My Orders
+                            </a>
+                            <a href="{% url 'wishlist_page' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                                <i class="fas fa-heart w-4"></i> Wishlist
+                            </a>
+                            <div class="border-t border-gray-100">
+                                <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition rounded-b-xl">
+                                    <i class="fas fa-sign-out-alt w-4"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition">
+                        <i class="fas fa-user text-xl"></i>
+                        <span class="text-xs mt-0.5">Login</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Secondary Nav -->
+            <div class="flex items-center gap-8 py-2.5 text-sm">
+                <a href="/" class="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+                    <i class="fas fa-home text-xs"></i> Home
+                </a>
+
+                <!-- Categories Dropdown -->
+                <div class="relative" id="categoriesMenu">
+                    <button onclick="toggleCategories(event)"
+                            class="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+                        <i class="fas fa-th-large text-xs"></i> Categories
+                        <i class="fas fa-chevron-down text-xs ml-1" id="categoriesArrow"></i>
+                    </button>
+                    <div id="categoriesDropdown"
+                         class="absolute left-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 hidden z-50">
+                        <a href="{% url 'product_list' %}" class="flex items-center gap-2 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                            <i class="fas fa-th text-xs text-blue-600"></i> All Products
+                        </a>
+                        <a href="{% url 'product_list' %}?category=electronics" class="flex items-center gap-2 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                            <i class="fas fa-headphones text-xs text-purple-600"></i> Electronics
+                        </a>
+                        <a href="{% url 'product_list' %}?category=shoes" class="flex items-center gap-2 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                            <i class="fas fa-shoe-prints text-xs text-orange-600"></i> Shoes
+                        </a>
+                        <a href="{% url 'product_list' %}?category=clothing" class="flex items-center gap-2 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                            <i class="fas fa-tshirt text-xs text-green-600"></i> Clothing
+                        </a>
+                    </div>
+                </div>
+
+                <a href="{% url 'product_list' %}" class="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+                    <i class="fas fa-store text-xs"></i> Shop
+                </a>
+                <a href="#" class="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+                    <i class="fas fa-tag text-xs"></i> Offers
+                </a>
+                <a href="#" class="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+                    <i class="fas fa-info-circle text-xs"></i> About Us
+                </a>
+                <a href="#" class="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+                    <i class="fas fa-envelope text-xs"></i> Contact
+                </a>
+
+                <!-- Free Shipping Banner -->
+                <div class="ml-auto flex items-center gap-2 text-green-600 text-xs font-semibold">
+                    <i class="fas fa-truck"></i>
+                    <span>Free shipping on orders above ₹499</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Django Messages → Toast -->
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+                showToast("{{ message }}", "{{ message.tags }}");
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <div class="grid grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="font-bold mb-4 text-lg"><i class="fas fa-shopping-bag text-blue-400 mr-2"></i>ShopZone</h3>
+                    <p class="text-gray-400 text-sm">Your one-stop destination for quality products at best prices.</p>
+                    <div class="flex gap-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Useful Links</h4>
+                    <ul class="text-gray-400 text-sm space-y-2">
+                        <li><a href="#" class="hover:text-white">About Us</a></li>
+                        <li><a href="#" class="hover:text-white">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white">FAQs</a></li>
+                        <li><a href="#" class="hover:text-white">Shipping Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Customer Service</h4>
+                    <ul class="text-gray-400 text-sm space-y-2">
+                        <li><a href="#" class="hover:text-white">My Account</a></li>
+                        <li><a href="#" class="hover:text-white">Order Tracking</a></li>
+                        <li><a href="#" class="hover:text-white">Wishlist</a></li>
+                        <li><a href="#" class="hover:text-white">Returns</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Contact Us</h4>
+                    <p class="text-gray-400 text-sm mb-2"><i class="fas fa-phone text-blue-400 mr-2"></i>+91 9876543210</p>
+                    <p class="text-gray-400 text-sm mb-2"><i class="fas fa-envelope text-blue-400 mr-2"></i>support@shopzone.com</p>
+                    <p class="text-gray-400 text-sm"><i class="fas fa-map-marker-alt text-blue-400 mr-2"></i>Mumbai, India</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 flex justify-between items-center text-gray-400 text-sm">
+                <p>&copy; 2026 ShopZone. All Rights Reserved.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="hover:text-white">Privacy Policy</a>
+                    <a href="#" class="hover:text-white">Terms & Conditions</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ─── Categories Dropdown ─────────────────────────
+        function toggleCategories(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('categoriesDropdown');
+            const arrow = document.getElementById('categoriesArrow');
+            if (!dropdown) return;
+            dropdown.classList.toggle('hidden');
+            if (arrow) arrow.classList.toggle('rotate-180');
+        }
+
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('categoriesMenu');
+            const dropdown = document.getElementById('categoriesDropdown');
+            if (menu && dropdown && !menu.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                const arrow = document.getElementById('categoriesArrow');
+                if (arrow) arrow.classList.remove('rotate-180');
+            }
+        });
+
+        // ─── User Dropdown ───────────────────────────────
+        function toggleUser(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            if (!dropdown) return;
+            dropdown.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('userMenu');
+            const dropdown = document.getElementById('userDropdown');
+            if (menu && dropdown && !menu.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // ─── Toast System ───────────────────────────────
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+
+            const colors = {
+                success: 'bg-green-500',
+                error:   'bg-red-500',
+                warning: 'bg-yellow-500',
+                info:    'bg-blue-500',
+            };
+
+            const icons = {
+                success: 'fa-check-circle',
+                error:   'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info:    'fa-info-circle',
+            };
+
+            const color = colors[type] || colors.success;
+            const icon  = icons[type]  || icons.success;
+
+            const toast = document.createElement('div');
+            toast.className = `${color} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium transform translate-x-full transition-transform duration-300`;
+            toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            // Slide in
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-x-full');
+                });
+            });
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ─── Search ─────────────────────────────────────
+        const searchInput    = document.getElementById('searchInput');
+        const searchDropdown = document.getElementById('searchDropdown');
+        const searchEndpoint = "{% url 'search_suggestions' %}";
+        let searchTimer = null;
+
+        function hideSearchDropdown() {
+            searchDropdown.classList.add('hidden');
+            searchDropdown.innerHTML = '';
+        }
+
+        function renderSearchResults(results) {
+            if (!results.length) {
+                searchDropdown.innerHTML = '<p class="px-4 py-3 text-sm text-gray-500">No products found</p>';
+                searchDropdown.classList.remove('hidden');
+                return;
+            }
+            searchDropdown.innerHTML = results.map(product => `
+                <a href="/products/${encodeURIComponent(product.slug)}/"
+                   class="flex items-center justify-between gap-4 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                    <span class="text-sm text-gray-800 line-clamp-1">${product.name}</span>
+                    <span class="text-sm font-semibold text-blue-600">₹${product.price}</span>
+                </a>
+            `).join('');
+            searchDropdown.classList.remove('hidden');
+        }
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.trim();
+            clearTimeout(searchTimer);
+            if (query.length < 2) { hideSearchDropdown(); return; }
+            searchTimer = setTimeout(() => {
+                fetch(`${searchEndpoint}?q=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(data => renderSearchResults(data.results || []))
+                    .catch(() => hideSearchDropdown());
+            }, 200);
+        });
+
+        searchInput.addEventListener('focus', function () {
+            if (this.value.trim().length >= 2 && searchDropdown.children.length) {
+                searchDropdown.classList.remove('hidden');
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#searchInput') && !e.target.closest('#searchDropdown')) {
+                hideSearchDropdown();
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') hideSearchDropdown();
+        });
+
+        // ─── Voice Search ────────────────────────────────
+        const micButton = document.getElementById('micButton');
+        const micIcon = document.getElementById('micIcon');
+
+        // Browser support check
+        if (micButton && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            let isListening = false;
+
+            micButton.addEventListener('click', function() {
+                if (isListening) {
+                    recognition.stop();
+                    return;
+                }
+                recognition.start();
+            });
+
+            recognition.onstart = function() {
+                isListening = true;
+                micIcon.className = 'fas fa-microphone text-sm text-red-500';
+                micButton.classList.add('animate-pulse');
+                showToast('Listening... Speak now!', 'info');
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                micIcon.className = 'fas fa-microphone text-sm';
+                micButton.classList.remove('animate-pulse');
+            };
+
+            recognition.onresult = function(event) {
+                let transcript = event.results[0][0].transcript;
+                transcript = transcript.toLowerCase().replace(/[.,!?]/g, '').trim();
+                searchInput.value = transcript;
+                showToast(`Searching: "${transcript}"`, 'success');
+
+                // Search page pe redirect karo
+                window.location.href = `/products/?q=${encodeURIComponent(transcript)}`;
+            };
+
+            recognition.onerror = function(event) {
+                isListening = false;
+                micIcon.className = 'fas fa-microphone text-sm';
+                micButton.classList.remove('animate-pulse');
+
+                if (event.error === 'not-allowed') {
+                    showToast('Microphone access denied!', 'error');
+                } else {
+                    showToast('Voice search failed. Try again!', 'error');
+                }
+            };
+
+        } else if (micButton) {
+            // Browser support nahi karta
+            micButton.addEventListener('click', function() {
+                showToast('Voice search not supported in this browser!', 'error');
+            });
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - ShopZone{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <a href="{% url 'home' %}" class="hover:text-blue-600">Home</a>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <a href="{% url 'product_list' %}" class="hover:text-blue-600">Products</a>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="text-gray-800 font-medium">{{ product.name }}</span>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="grid grid-cols-2 gap-0">
+
+            <!-- Left — Image -->
+            <div class="bg-gray-50 p-12 flex items-center justify-center min-h-96 border-r border-gray-100">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                         class="max-h-80 w-full object-contain hover:scale-105 transition duration-300">
+                {% else %}
+                    <div class="text-center">
+                        <i class="fas fa-box text-8xl text-gray-200 mb-4"></i>
+                        <p class="text-gray-400">No image available</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Right — Details -->
+            <div class="p-10 flex flex-col justify-between">
+                <div>
+                    <!-- Category -->
+                    <span class="text-xs font-semibold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">
+                        {{ product.category.name }}
+                    </span>
+
+                    <!-- Name -->
+                    <h1 class="text-3xl font-bold text-gray-900 mt-4 mb-3">{{ product.name }}</h1>
+
+                    <!-- Price -->
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-4xl font-bold text-gray-900">₹{{ product.price|floatformat:0 }}</span>
+                    </div>
+
+                    <!-- Stock -->
+                    {% if product.stock > 0 %}
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                            <span class="text-green-600 font-semibold text-sm">In Stock ({{ product.stock }} available)</span>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                            <span class="text-red-600 font-semibold text-sm">Out of Stock</span>
+                        </div>
+                    {% endif %}
+
+                    <!-- Description -->
+                    {% if product.description %}
+                    <div class="border-t border-gray-100 pt-4 mb-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-2">Description</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">{{ product.description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 mt-6">
+                    {% if product.stock > 0 %}
+                    <a href="{% url 'add_to_cart' product.id %}"
+                       class="flex-1 text-center bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </a>
+                    <a href="{% url 'checkout' %}"
+                       class="flex-1 text-center bg-gray-900 text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-bolt"></i> Buy Now
+                    </a>
+                    {% else %}
+                    <button disabled
+                       class="flex-1 text-center bg-gray-300 text-gray-500 py-3 rounded-xl font-semibold cursor-not-allowed">
+                        Out of Stock
+                    </button>
+                    {% endif %}
+
+                    <!-- Wishlist Heart Button -->
+                    <a href="{% url 'toggle_wishlist' product.id %}"
+                       class="px-4 py-3 rounded-xl border-2 transition flex items-center justify-center
+                              {% if is_wishlisted %}border-red-500 bg-red-50 text-red-500{% else %}border-gray-200 text-gray-400 hover:border-red-400 hover:text-red-400{% endif %}">
+                        <i class="fas fa-heart text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {% for related in related_products %}
+            <a href="{% url 'product_detail' related.slug %}"
+               class="bg-white rounded-xl shadow hover:shadow-lg transition group border border-gray-100">
+                <div class="bg-gray-50 h-48 rounded-t-xl overflow-hidden flex items-center justify-center p-4">
+                    {% if related.image %}
+                        <img src="{{ related.image.url }}" alt="{{ related.name }}"
+                             class="w-full h-full object-contain group-hover:scale-105 transition duration-300">
+                    {% else %}
+                        <i class="fas fa-box text-4xl text-gray-200"></i>
+                    {% endif %}
+                </div>
+                <div class="p-4">
+                    <p class="text-xs text-blue-600 font-semibold uppercase mb-1">{{ related.category.name }}</p>
+                    <h3 class="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition line-clamp-2 mb-2">
+                        {{ related.name }}
+                    </h3>
+                    <p class="text-lg font-bold text-gray-900">₹{{ related.price|floatformat:0 }}</p>
+                    {% if related.stock > 0 %}
+                        <p class="text-xs text-green-600 font-semibold mt-1">In Stock</p>
+                    {% else %}
+                        <p class="text-xs text-red-600 font-semibold mt-1">Out of Stock</p>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Ratings & Reviews Section -->
+    <div class="mt-12">
+
+        <!-- Average Rating -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Ratings & Reviews</h2>
+                {% if avg_rating %}
+                <div class="flex items-center gap-2">
+                    <span class="text-4xl font-bold text-gray-900">{{ avg_rating|floatformat:1 }}</span>
+                    <div>
+                        <div class="flex gap-1">
+                            {% for i in "12345" %}
+                            <i class="fas fa-star {% if forloop.counter <= avg_rating %}text-yellow-400{% else %}text-gray-200{% endif %}"></i>
+                            {% endfor %}
+                        </div>
+                        <p class="text-sm text-gray-500">{{ reviews|length }} reviews</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Review Form -->
+            {% if user.is_authenticated and has_purchased %}
+            <div class="border-t border-gray-100 pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    {% if user_review %}Edit Your Review{% else %}Write a Review{% endif %}
+                </h3>
+
+                <form method="POST" action="{% url 'submit_review' product.id %}">
+                    {% csrf_token %}
+
+                    <!-- Star Rating -->
+                    <div class="flex gap-2 mb-4" id="starRating">
+                        {% for i in "12345" %}
+                        <button type="button" onclick="setRating({{ forloop.counter }})"
+                                class="star-btn text-3xl text-gray-300 hover:text-yellow-400 transition"
+                                data-value="{{ forloop.counter }}">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="rating" id="ratingInput"
+                           value="{% if user_review %}{{ user_review.rating }}{% endif %}">
+
+                    <textarea name="comment" rows="3" placeholder="Share your experience..."
+                              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none mb-4">{% if user_review %}{{ user_review.comment }}{% endif %}</textarea>
+
+                    <button type="submit"
+                            class="bg-blue-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-blue-700 transition">
+                        {% if user_review %}Update Review{% else %}Submit Review{% endif %}
+                    </button>
+
+                    {% if user_review %}
+                    <span class="ml-3 text-sm text-gray-500">
+                        Status:
+                        <span class="font-semibold
+                            {% if user_review.status == 'approved' %}text-green-600
+                            {% elif user_review.status == 'rejected' %}text-red-600
+                            {% else %}text-yellow-600{% endif %}">
+                            {{ user_review.get_status_display }}
+                        </span>
+                    </span>
+                    {% endif %}
+                </form>
+            </div>
+
+            {% elif not user.is_authenticated %}
+            <div class="border-t border-gray-100 pt-6">
+                <p class="text-gray-500 text-sm">
+                    <a href="{% url 'login' %}" class="text-blue-600 font-semibold">Login</a> to write a review.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Reviews List -->
+        {% if reviews %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <h3 class="text-lg font-bold text-gray-900 mb-6">Customer Reviews</h3>
+            {% for review in reviews %}
+            <div class="border-b border-gray-100 pb-6 mb-6 last:border-0 last:mb-0">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-blue-600 font-bold text-sm">
+                                {{ review.user.username|first|upper }}
+                            </span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">{{ review.user.username }}</p>
+                            <p class="text-xs text-gray-400">{{ review.created_at|date:"d M Y" }}</p>
+                        </div>
+                    </div>
+                    <!-- Stars -->
+                    <div class="flex gap-1">
+                        {% for i in "12345" %}
+                        <i class="fas fa-star text-sm {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-200{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="text-gray-600 text-sm leading-relaxed">{{ review.comment }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+// Star Rating
+function setRating(value) {
+    document.getElementById('ratingInput').value = value;
+    document.querySelectorAll('.star-btn').forEach(btn => {
+        if (parseInt(btn.dataset.value) <= value) {
+            btn.classList.remove('text-gray-300');
+            btn.classList.add('text-yellow-400');
+        } else {
+            btn.classList.remove('text-yellow-400');
+            btn.classList.add('text-gray-300');
+        }
+    });
+}
+
+// Agar pehle se rating hai toh stars highlight karo
+document.addEventListener('DOMContentLoaded', function() {
+    const existingRating = document.getElementById('ratingInput').value;
+    if (existingRating) {
+        setRating(parseInt(existingRating));
+    }
+});
+</script>
+{% endblock %}
